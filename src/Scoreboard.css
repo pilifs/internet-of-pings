@@ -1,0 +1,23 @@
+.Scoreboard {
+  display: flex;
+  flex-direction: row;
+
+  justify-content: flex-start;
+  align-items: stretch;
+  align-content: stretch;
+  flex: 1;
+}
+
+.ScoreCounter {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  align-content: center;
+  font-size: 60vh;
+  color: white;
+}
+
+.ScoreCounter div {
+  width: 100%;
+  text-align: center;
+}
