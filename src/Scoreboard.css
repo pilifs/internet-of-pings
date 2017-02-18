@@ -8,16 +8,24 @@
   flex: 1;
 }
 
-.ScoreCounter {
+.PlayerInformation {
   display: flex;
   flex: 1;
-  align-items: center;
-  align-content: center;
-  font-size: 60vh;
+
   color: white;
 }
 
-.ScoreCounter div {
+.PlayerInformation .scoreCounter {
+  align-self: center;
+  margin-top: 4vh;
+  font-size: 40vmin;
   width: 100%;
   text-align: center;
+}
+
+.PlayerInformation .playerName {
+  font-size: 5vw;
+  position: absolute;
+  margin-left: 2vw;
+  margin-top: 1vw;
 }

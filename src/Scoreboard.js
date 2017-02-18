@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import ScoreCounter from './ScoreCounter';
+import PlayerInformation from './PlayerInformation';
 import './Scoreboard.css';
 
 class Scoreboard extends Component {
-
   render() {
     const dividerStyle = {
       width: '10px',
@@ -11,12 +10,12 @@ class Scoreboard extends Component {
 
     return (
       <div className="Scoreboard">
-        <ScoreCounter position="left" />
+        <PlayerInformation name="player1.name" position="left" />
         <div style={dividerStyle}></div>
-        <ScoreCounter position="right" />
+        <PlayerInformation name="player2.name" position="right" />
       </div>
-    )
-  }
+    );
+  };
 }
 
 export default Scoreboard;

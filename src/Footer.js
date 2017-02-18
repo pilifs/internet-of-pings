@@ -7,8 +7,8 @@ class Footer extends Component {
       <div className="Footer">
         <div>I'm a footer</div>
       </div>
-    )
-  }
+    );
+  };
 }
 
 export default Footer;

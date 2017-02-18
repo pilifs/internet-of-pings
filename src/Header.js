@@ -8,8 +8,8 @@ class Header extends Component {
       <div className="Header">
         <div>I'm a header</div>
       </div>
-    )
-  }
+    );
+  };
 }
 
 export default Header;
