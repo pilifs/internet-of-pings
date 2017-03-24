@@ -5,10 +5,6 @@ class PlayerInformation extends Component {
   constructor() {
     super();
 
-    this.state = {
-      score: 0
-    }
-
     // Has to be a better way to bind context of this in all event handlers to component
     this._handleClick = this._handleClick.bind(this);
   };
@@ -39,9 +35,8 @@ class PlayerInformation extends Component {
 
   render() {
     const backgroundColor = this.props.position === "left" ? "red" : "blue";
-    const playerName = this.props.position === "left" ? "player1" : "player2";
 
-    const score = this.state.score;
+    const score = this.props.score;
 
     const style = {
       background: backgroundColor
@@ -49,7 +44,7 @@ class PlayerInformation extends Component {
 
     return (
       <div className="PlayerInformation" style={style} onClick={this._handleClick}>
-        <div className="playerName">{playerName}</div>
+        <div className="playerName">{this.props.name}</div>
         <div className="scoreCounter">{score}</div>
       </div>
     );
