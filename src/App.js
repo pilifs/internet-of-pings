@@ -19,7 +19,6 @@ base.database.enableLogging(true)
 
 class App extends Component {
 
-
   constructor() {
     super();
 
@@ -153,7 +152,6 @@ class App extends Component {
     });
 
     base.onAuth(function (user) {
-      debugger;
       var canUpdateScore = !!(user && user.email === that._scoreboardEmail);
       that.setState({isAuthenticated: canUpdateScore});
     });
@@ -165,28 +163,18 @@ class App extends Component {
   };
 
   render() {
-    var that = this;
-
-    const app = (isLoading) => {
-      return (isLoading) ?
-          (
+    return !this.state.game ?
             <div className="AppLoading">
               <LoadingFullScreen />
-            </div>
-          ) :
-          (
+            </div> :
             <div className="App">
               <Header
-                auth={that.state.auth}
-                handleAuthenticate={that._handleAuthenticate}
+                auth={this.state.auth}
+                handleAuthenticate={this._handleAuthenticate}
               />
-              <Scoreboard game={that.state.game} />
+              <Scoreboard game={this.state.game} />
               <Footer />;
-            </div>
-          );
-    };
-
-    return app(!this.state.game);
+            </div>;
   };
 }
 

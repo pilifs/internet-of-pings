@@ -6,15 +6,24 @@ import './Header.css';
 class Header extends Component {
 
   render() {
-    const mainHeader = (this.props.auth.inProgress || this.props.auth.enterCredentials) ?
-        <EnterPassword
-          inProgress={this.props.auth.inProgress}
-          handleAuthenticate={this.props.handleAuthenticate}
-        /> :
-        <div>I'm a header</div>;
+    const style = {
+      height: 50
+    };
+
+    var mainHeader;
+
+    if (this.props.auth.inProgress || this.props.auth.enterCredentials) {
+      style.height = 150;
+      mainHeader = <EnterPassword
+        inProgress={this.props.auth.inProgress}
+        handleAuthenticate={this.props.handleAuthenticate}
+      />;
+    } else {
+      mainHeader = <div>Title</div>;
+    }
 
     return (
-      <div className="Header">
+      <div className="Header" style={style}>
         {mainHeader}
       </div>
     );
