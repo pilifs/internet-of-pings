@@ -26,7 +26,6 @@ class App extends Component {
       // game is explicitly defined to keep track of loading state
       // on Firebase sync this is overwritten by game object
       game: false,
-      authenticating: false,
       auth: {
         inProgress: false,
         enterCredentials: false
@@ -119,17 +118,23 @@ class App extends Component {
   };
 
   _incrementScore(player) {
-    this.setState((prevState, props) => {
-      debugger;
-      return prevState.game[player].score += 1;
-    });
+    var game = this.state.game;
+    game[player].score += 1;
+    this.setState({game: game});
+
+    // re-base wraps setState and does not support below syntax
+    // arguments must be: [newStateData, callback]
+    // will probably remove rebase later / fix this
+    // this.setState((prevState, props) => {
+    //   return prevState.game[player].score += 1;
+    // });
   };
 
   _decrementScore(player) {
-    this.setState((prevState, props) => {
-      if (prevState.game[player].score === 0) { return {score: prevState[player].score }; }
-      return prevState.game[player].score -= 1;
-    });
+    var game = this.state.game;
+    if (game[player].score === 0) { return; }
+    game[player].score -= 1;
+    this.setState({game: game});
   };
 
   componentWillMount() {
