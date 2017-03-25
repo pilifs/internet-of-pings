@@ -2,23 +2,30 @@ import React, { Component } from 'react';
 import Scoreboard from './Scoreboard';
 import Footer from './Footer';
 import Header from './Header';
+import LoadingFullScreen from './LoadingFullScreen';
+import Rebase from 're-base';
 import './App.css';
+
+// Not secret, always visible in browser
+var firebaseConfig = {
+  apiKey: "AIzaSyD7ggRzuXZw0dM5Quu-n-R2UgreylPdbiE",
+  databaseURL: "https://internet-of-pings-f053e.firebaseio.com",
+  authDomain: "internet-of-pings-f053e.firebaseapp.com",
+  storageBucket: "internet-of-pings-f053e.appspot.com"
+};
+
+var base = Rebase.createClass(firebaseConfig, 'Internet of Pings');
+base.database.enableLogging(true)
 
 class App extends Component {
 
   constructor() {
     super();
 
+    // Used to keep track of loading state
+    // On Firebase sync this is overwritten by game object
     this.state = {
-      settings: {},
-      player1: {
-        name: "Filip",
-        score: 0
-      },
-      player2: {
-        name: "Alda",
-        score: 0
-      }
+      game: false,
     }
 
     // Has to be a better way to bind context of this
@@ -57,14 +64,14 @@ class App extends Component {
 
   _incrementScore(player) {
     this.setState((prevState, props) => {
-      return prevState[player].score += 1;
+      return prevState.game[player].score += 1;
     });
   };
 
   _decrementScore(player) {
     this.setState((prevState, props) => {
-      if (prevState[player].score === 0) { return {score: prevState[player].score }; }
-      return prevState[player].score -= 1;
+      if (prevState.game[player].score === 0) { return {score: prevState[player].score }; }
+      return prevState.game[player].score -= 1;
     });
   };
 
@@ -72,18 +79,40 @@ class App extends Component {
     document.addEventListener("keydown", this._handleButtons.bind(this));
   };
 
+  componentDidMount() {
+    this.ref = base.syncState('game', {
+      context: this,
+      state: 'game',
+      // then: that._loadApp() This callback is called on initial handshake but before any data actually comes back from Firebase
+      // --> cannot use it to toggle loading as suggested in the re-base docs
+    });
+  };
+
   componentWillUnmount() {
-    document.addEventListener("keydown", this._handleButtons.bind(this));
+    base.removeBinding(this.ref);
+    document.removeEventListener("keydown", this._handleButtons.bind(this));
   };
 
   render() {
-    return (
-      <div className="App">
-        <Header />
-        <Scoreboard game={this.state}/>
-        <Footer />
-      </div>
-    );
+    var that = this;
+
+    const app = (isLoading) => {
+      return (isLoading) ?
+          (
+            <div className="AppLoading">
+              <LoadingFullScreen />
+            </div>
+          ) :
+          (
+            <div className="App">
+              <Header />
+              <Scoreboard game={that.state.game}/>
+              <Footer />;
+            </div>
+          );
+    };
+
+    return app(!this.state.game);
   };
 }
 

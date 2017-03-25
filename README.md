@@ -3,8 +3,6 @@
 Cloud connected ping-pong table with live scoreboard, persistent stats, RFID based auth and slack integration.
 
 ## "Architecture"
-- GitHub Pages hosted front end
-  - Use ReactJS, create-react-app makes this easy
 - Raspberry Pi / RFID reader connected to table
   - Pi has admin auth. It can do calculations client side and send to Firebase
   - Buttons for basic actions / user input (see Features)
@@ -18,7 +16,7 @@ Cloud connected ping-pong table with live scoreboard, persistent stats, RFID bas
   - Perform all calculations for stats on client side and send to Firebase
   - Only Pi + Admins should have auth for write access for ping pong data, everyone else read only
   - Exception is player metadata, which each player can update via slack bot
-  - Need to handle recalculating everything in a sane way IE: if a game is inputted incorrectly (something like AWS Lambda??)
+  - Firebase functions to handle recalculating everything in a sane way IE: if a game is inputted incorrectly
 - Slack bot
   - Posts game status into a slack channel
   - Can post things like stats on demand
