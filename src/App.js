@@ -19,6 +19,7 @@ base.database.enableLogging(true)
 
 class App extends Component {
 
+
   constructor() {
     super();
 
@@ -29,12 +30,15 @@ class App extends Component {
       auth: {
         inProgress: false,
         enterCredentials: false
-      }
+      },
+      isAuthenticated: false
     }
 
+    // TODO hardcoded
+    this._scoreboardEmail = 'mainscoreboard@internetofpings.fake';
+
     // Has to be a better way to bind context of this
-    this._decrementScore = this._decrementScore.bind(this);
-    this._incrementScore = this._incrementScore.bind(this);
+    this._updateScore = this._updateScore.bind(this);
     this._enterCredentials = this._enterCredentials.bind(this);
     this._handleAuthenticate = this._handleAuthenticate.bind(this);
     this._clearInputs = this._clearInputs.bind(this);
@@ -47,20 +51,20 @@ class App extends Component {
 
     switch (key) {
       case "q":
-        action = this._incrementScore;
-        args.push("player1");
+        action = this._updateScore;
+        args.push("player1", "increment");
         break;
       case "w":
-        action = this._decrementScore;
-        args.push("player1");
+        action = this._updateScore;
+        args.push("player1", "decrement");
         break;
       case "o":
-        action = this._incrementScore;
-        args.push("player2");
+        action = this._updateScore;
+        args.push("player2", "increment");
         break;
       case "p":
-        action = this._decrementScore;
-        args.push("player2");
+        action = this._updateScore;
+        args.push("player2", "decrement");
         break;
       case "l":
         action = this._enterCredentials;
@@ -73,6 +77,29 @@ class App extends Component {
     }
 
     action.apply(this, args);
+  };
+
+  _handleAuthenticate(event) {
+    event.preventDefault();
+
+    var that = this;
+    var password = event.currentTarget.querySelector(".fb-auth-pw").value;
+
+    this.setState({
+      auth: {
+        inProgress: true,
+        enterCredentials: false
+      }
+    })
+
+    base.authWithPassword({
+      email    : that._scoreboardEmail,
+      password : password
+    }, function(error, user) {
+      var msg = (error) ? "Error auth" : "Success auth";
+      that._clearInputs();
+      console.log(msg);
+    });
   };
 
   _enterCredentials() {
@@ -93,48 +120,22 @@ class App extends Component {
     });
   };
 
-  _handleAuthenticate(event) {
-    event.preventDefault();
-    var that = this;
-    var password = event.currentTarget.querySelector(".fb-auth-pw").value;
+  _updateScore(player, operator) {
+    if (!this.state.isAuthenticated) { return; }
 
-    this.setState({
-      auth: {
-        inProgress: true,
-        enterCredentials: false
-      }
-    })
-
-    base.authWithPassword({
-      // TODO: hardcoded
-      email    : 'mainscoreboard@internetofpings.fake',
-      password : password
-    }, function(error, user) {
-      var msg = (error) ? "Error auth" : "Success auth";
-      that._clearInputs();
-      console.log(msg);
-    });
-
-  };
-
-  _incrementScore(player) {
     var game = this.state.game;
-    game[player].score += 1;
+
+    if (operator === "decrement" && game[player].score === 0) { return; }
+
+    game[player].score = (operator === "increment") ? ++game[player].score : --game[player].score;
     this.setState({game: game});
 
     // re-base wraps setState and does not support below syntax
     // arguments must be: [newStateData, callback]
-    // will probably remove rebase later / fix this
+    // TODO will probably remove rebase later / fix this
     // this.setState((prevState, props) => {
     //   return prevState.game[player].score += 1;
     // });
-  };
-
-  _decrementScore(player) {
-    var game = this.state.game;
-    if (game[player].score === 0) { return; }
-    game[player].score -= 1;
-    this.setState({game: game});
   };
 
   componentWillMount() {
@@ -142,11 +143,19 @@ class App extends Component {
   };
 
   componentDidMount() {
+    var that = this;
+
     this.ref = base.syncState('game', {
       context: this,
       state: 'game',
       // then: that._loadApp() This callback is called on initial handshake but before any data actually comes back from Firebase
       // --> cannot use it to toggle loading as suggested in the re-base docs
+    });
+
+    base.onAuth(function (user) {
+      debugger;
+      var canUpdateScore = !!(user && user.email === that._scoreboardEmail);
+      that.setState({isAuthenticated: canUpdateScore});
     });
   };
 

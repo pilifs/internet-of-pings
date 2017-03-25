@@ -5,7 +5,7 @@ class LoadingFullScreen extends Component {
   // TODO
   render() {
     return (
-      <div>LOADING</div>
+      <div>TODO: LOADING</div>
     );
   };
 }
