@@ -22,48 +22,105 @@ class App extends Component {
   constructor() {
     super();
 
-    // Used to keep track of loading state
-    // On Firebase sync this is overwritten by game object
     this.state = {
+      // game is explicitly defined to keep track of loading state
+      // on Firebase sync this is overwritten by game object
       game: false,
+      authenticating: false,
+      auth: {
+        inProgress: false,
+        enterCredentials: false
+      }
     }
 
     // Has to be a better way to bind context of this
     this._decrementScore = this._decrementScore.bind(this);
     this._incrementScore = this._incrementScore.bind(this);
+    this._enterCredentials = this._enterCredentials.bind(this);
+    this._handleAuthenticate = this._handleAuthenticate.bind(this);
+    this._clearInputs = this._clearInputs.bind(this);
   };
 
   _handleButtons(event) {
-    var player;
     var action;
+    var args = [];
     var key = event.key;
 
     switch (key) {
       case "q":
         action = this._incrementScore;
-        player = "player1";
+        args.push("player1");
         break;
       case "w":
         action = this._decrementScore;
-        player = "player1";
+        args.push("player1");
         break;
       case "o":
         action = this._incrementScore;
-        player = "player2";
+        args.push("player2");
         break;
       case "p":
         action = this._decrementScore;
-        player = "player2";
+        args.push("player2");
+        break;
+      case "l":
+        action = this._enterCredentials;
+        break;
+      case "Escape":
+        action = this._clearInputs;
         break;
       default:
         return;
     }
 
-    action(player);
+    action.apply(this, args);
+  };
+
+  _enterCredentials() {
+    this.setState({
+      auth: {
+        inProgress: false,
+        enterCredentials: true
+      }
+    });
+  };
+
+  _clearInputs() {
+    this.setState({
+      auth: {
+        inProgress: false,
+        enterCredentials: false
+      }
+    });
+  };
+
+  _handleAuthenticate(event) {
+    event.preventDefault();
+    var that = this;
+    var password = event.currentTarget.querySelector(".fb-auth-pw").value;
+
+    this.setState({
+      auth: {
+        inProgress: true,
+        enterCredentials: false
+      }
+    })
+
+    base.authWithPassword({
+      // TODO: hardcoded
+      email    : 'mainscoreboard@internetofpings.fake',
+      password : password
+    }, function(error, user) {
+      var msg = (error) ? "Error auth" : "Success auth";
+      that._clearInputs();
+      console.log(msg);
+    });
+
   };
 
   _incrementScore(player) {
     this.setState((prevState, props) => {
+      debugger;
       return prevState.game[player].score += 1;
     });
   };
@@ -105,8 +162,11 @@ class App extends Component {
           ) :
           (
             <div className="App">
-              <Header />
-              <Scoreboard game={that.state.game}/>
+              <Header
+                auth={that.state.auth}
+                handleAuthenticate={that._handleAuthenticate}
+              />
+              <Scoreboard game={that.state.game} />
               <Footer />;
             </div>
           );
