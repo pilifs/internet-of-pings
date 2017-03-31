@@ -13,7 +13,7 @@ class PlayerInformation extends Component {
 
     return (
       <div className="PlayerInformation" style={style}>
-        <div className="playerName">{this.props.name}</div>
+        <div className="playerName">{this.props.name}{this.props.isWinner && " wins!!!"}</div>
         <div className="scoreCounter">{score}</div>
       </div>
     );

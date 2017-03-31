@@ -4,6 +4,7 @@ import Footer from './Footer';
 import Header from './Header';
 import LoadingFullScreen from './LoadingFullScreen';
 import Rebase from 're-base';
+import _ from 'lodash';
 import './App.css';
 
 // Not secret, always visible in browser
@@ -41,6 +42,8 @@ class App extends Component {
     this._enterCredentials = this._enterCredentials.bind(this);
     this._handleAuthenticate = this._handleAuthenticate.bind(this);
     this._clearInputs = this._clearInputs.bind(this);
+    this._submitGame = this._submitGame.bind(this);
+    this._resetScores = this._resetScores.bind(this);
   };
 
   _handleButtons(event) {
@@ -67,6 +70,9 @@ class App extends Component {
         break;
       case "l":
         action = this._enterCredentials;
+        break;
+      case "g":
+        action = this._submitGame;
         break;
       case "Escape":
         action = this._clearInputs;
@@ -125,8 +131,21 @@ class App extends Component {
     var game = this.state.game;
 
     if (operator === "decrement" && game[player].score === 0) { return; }
+    if (operator === "increment" && game[player].name === game.winner) { return; }
 
     game[player].score = (operator === "increment") ? ++game[player].score : --game[player].score;
+
+    let players = Object.keys(game);
+    let opposingPlayer = _.find(players, function (p) {
+      return p !== player;
+    });
+
+    if (game[player].score >= 21 && (game[player].score - game[opposingPlayer].score) > 1) {
+      game.winner = game[player].name;
+    } else {
+      game.winner = null;
+    }
+
     this.setState({game: game});
 
     // re-base wraps setState and does not support below syntax
@@ -135,6 +154,33 @@ class App extends Component {
     // this.setState((prevState, props) => {
     //   return prevState.game[player].score += 1;
     // });
+  };
+
+  _submitGame() {
+    var that = this;
+
+    base.push(
+      "games",
+      {
+        data: {winner: {score: 0}, loser: {score: 0}},
+        then(err) {
+          if (!err) {
+            that._resetScores();
+          } else {
+            console.log(err);
+          }
+        }
+      }
+    )
+  };
+
+  _resetScores() {
+    var game = this.state.game;
+    game.player1.score = 0;
+    game.player2.score = 0;
+    game.winner = null;
+
+    this.setState({game: game});
   };
 
   componentWillMount() {
@@ -147,6 +193,13 @@ class App extends Component {
     this.ref = base.syncState('game', {
       context: this,
       state: 'game',
+      // then: that._loadApp() This callback is called on initial handshake but before any data actually comes back from Firebase
+      // --> cannot use it to toggle loading as suggested in the re-base docs
+    });
+
+    this.ref = base.syncState('games', {
+      context: this,
+      state: 'games',
       // then: that._loadApp() This callback is called on initial handshake but before any data actually comes back from Firebase
       // --> cannot use it to toggle loading as suggested in the re-base docs
     });
@@ -173,7 +226,7 @@ class App extends Component {
                 handleAuthenticate={this._handleAuthenticate}
               />
               <Scoreboard game={this.state.game} />
-              <Footer />;
+              <Footer games={this.state.games || "loading"}/>;
             </div>;
   };
 }
