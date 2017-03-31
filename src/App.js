@@ -77,6 +77,10 @@ class App extends Component {
       case "Escape":
         action = this._clearInputs;
         break;
+      case "n": // this is the action for swiping rfid when not enough players exist
+        args = [this._generateRFID()];
+        action = this._addPlayer;
+        break;
       default:
         return;
     }
@@ -123,10 +127,38 @@ class App extends Component {
         enterCredentials: false
       }
     });
-  };
+  }
+
+  _shittyUserReset() {
+    alert("Resetting Users");
+    this.setState({game: null});
+  }
+
+  _generateRFID() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for( var i=0; i < 5; i++ ) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  }
+
+  _addPlayer(rfid) {
+    if (Object.keys(this.state.game).length < 2) {
+      // implement logic to exchange rfid for player data
+      var newGame = this.state.game;
+      var playerName = "player" + (Object.keys(this.state.game).length + 1);
+      newGame[playerName] = { "name":playerName, "rfid":rfid, "score":0 }; // don't store rfid here in the future
+      this.setState({game: newGame});
+    }
+  }
 
   _updateScore(player, operator) {
-    if (!this.state.isAuthenticated) { return; }
+    if (!this.state.isAuthenticated || !(this.state.game.player1 && this.state.game.player2)) {
+      alert("there must be at least two players to play");
+      return;
+    }
+    
 
     var game = this.state.game;
 
@@ -172,6 +204,7 @@ class App extends Component {
         }
       }
     )
+    this._shittyUserReset();
   };
 
   _resetScores() {
@@ -207,6 +240,7 @@ class App extends Component {
     base.onAuth(function (user) {
       var canUpdateScore = !!(user && user.email === that._scoreboardEmail);
       that.setState({isAuthenticated: canUpdateScore});
+      that._shittyUserReset();
     });
   };
 
@@ -216,8 +250,12 @@ class App extends Component {
   };
 
   render() {
-    return !this.state.game ?
+    return (!this.state.game || !(Object.keys(this.state.game).length >= 1)) ?
             <div className="AppLoading">
+              <Header
+                auth={this.state.auth}
+                handleAuthenticate={this._handleAuthenticate}
+              />
               <LoadingFullScreen />
             </div> :
             <div className="App">
@@ -226,7 +264,7 @@ class App extends Component {
                 handleAuthenticate={this._handleAuthenticate}
               />
               <Scoreboard game={this.state.game} />
-              <Footer games={this.state.games || "loading"}/>;
+              <Footer games={this.state.games || "loading"}/>
             </div>;
   };
 }

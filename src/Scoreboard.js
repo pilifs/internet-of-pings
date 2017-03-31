@@ -20,17 +20,17 @@ class Scoreboard extends Component {
 
     return (
       <div className="Scoreboard">
-        <PlayerInformation
+        {this.props.game.player1 && <PlayerInformation
           isWinner={this._isWinner(this.props.game.player1.name) && true}
           name={this.props.game.player1.name}
           position="left"
-          score={this.props.game.player1.score} />
+          score={this.props.game.player1.score} />}
         <div style={dividerStyle}></div>
-        <PlayerInformation
+        {this.props.game.player2 && <PlayerInformation
           isWinner={this._isWinner(this.props.game.player2.name) && true}
           name={this.props.game.player2.name}
           position="right"
-          score={this.props.game.player2.score} />
+          score={this.props.game.player2.score} />}
       </div>
     );
   };
