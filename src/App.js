@@ -130,7 +130,7 @@ class App extends Component {
   }
 
   _shittyUserReset() {
-    alert("Resetting Users");
+    console.log("Resetting Users");
     this.setState({game: null});
   }
 
@@ -155,24 +155,25 @@ class App extends Component {
 
   _updateScore(player, operator) {
     if (!this.state.isAuthenticated || !(this.state.game.player1 && this.state.game.player2)) {
-      alert("there must be at least two players to play");
+      console.log("there must be at least two players to play");
       return;
     }
-    
 
-    var game = this.state.game;
+
+    var game = _.clone(this.state.game);
 
     if (operator === "decrement" && game[player].score === 0) { return; }
-    if (operator === "increment" && game[player].name === game.winner) { return; }
+    if (operator === "increment" && game.winner) { return; }
+    if (game.winner && game.winner !== player) { return;
 
-    game[player].score = (operator === "increment") ? ++game[player].score : --game[player].score;
+    game[player].score = (operator === "increment") ? ++game[player].score  : --game[player].score;
 
     let players = Object.keys(game);
     let opposingPlayer = _.find(players, function (p) {
       return p !== player;
     });
 
-    if (game[player].score >= 21 && (game[player].score - game[opposingPlayer].score) > 1) {
+    if ((game[player].score >= 21 && (game[player].score - game[opposingPlayer].score) > 1) || game[player].score === 30) {
       game.winner = game[player].name;
     } else {
       game.winner = null;
