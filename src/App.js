@@ -137,7 +137,7 @@ class App extends Component {
 
   _shittyUserReset() {
     console.log("Resetting Users");
-    this.setState({game: null});
+    this.setState({game: {streak: this.state.game.streak}});
   }
 
   _generateRFID() {
@@ -164,14 +164,34 @@ class App extends Component {
       console.log("there must be at least two players to play");
       return;
     }
-
+    var that = this;
+    var is10x = false
     var game = _.clone(this.state.game);
 
     if (operator === "decrement" && game[player].score === 0) { return; }
     if (operator === "increment" && game.winner) { return; }
     if (game.winner && game.winner !== player) { return; }
 
-    game[player].score = (operator === "increment") ? ++game[player].score  : --game[player].score;
+    if (operator === "increment"){
+      game[player].score = ++game[player].score;
+      if (game["streak"].player !== game[player].name) {
+        game["streak"].player = game[player].name;
+        game["streak"].points = 1;
+      } else {
+        ++game["streak"].points;
+        if (game["streak"].points === 10) {
+          is10x = true;
+          setTimeout(function () {
+            that.setState({tenx: false});
+          }, 3000);
+        }
+      }
+    } else {
+      game[player].score = --game[player].score;
+      if (game["streak"].player === game[player].name) { --game["streak"].points; }
+    }
+
+    // game[player].score = (operator === "increment") ? ++game[player].score  : --game[player].score;
 
     let players = Object.keys(game);
     let opposingPlayer = _.find(players, function (p) {
@@ -184,7 +204,7 @@ class App extends Component {
       game.winner = null;
     }
 
-    this.setState({game: game});
+    this.setState({game: game, tenx: is10x});
 
     // re-base wraps setState and does not support below syntax
     // arguments must be: [newStateData, callback]
