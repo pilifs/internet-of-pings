@@ -3,6 +3,7 @@ import Scoreboard from './Scoreboard';
 import Footer from './Footer';
 import Header from './Header';
 import LoadingFullScreen from './LoadingFullScreen';
+import TenX from './TenX';
 import Rebase from 're-base';
 import _ from 'lodash';
 import './App.css';
@@ -31,7 +32,8 @@ class App extends Component {
         inProgress: false,
         enterCredentials: false
       },
-      isAuthenticated: false
+      isAuthenticated: false,
+      tenx: false
     }
 
     // TODO hardcoded
@@ -44,6 +46,7 @@ class App extends Component {
     this._clearInputs = this._clearInputs.bind(this);
     this._submitGame = this._submitGame.bind(this);
     this._resetScores = this._resetScores.bind(this);
+    this._trigger10x = this._trigger10x.bind(this);
   };
 
   _handleButtons(event) {
@@ -80,6 +83,9 @@ class App extends Component {
       case "n": // this is the action for swiping rfid when not enough players exist
         args = [this._generateRFID()];
         action = this._addPlayer;
+        break;
+      case "t":
+        action = this._trigger10x;
         break;
       default:
         return;
@@ -159,12 +165,11 @@ class App extends Component {
       return;
     }
 
-
     var game = _.clone(this.state.game);
 
     if (operator === "decrement" && game[player].score === 0) { return; }
     if (operator === "increment" && game.winner) { return; }
-    if (game.winner && game.winner !== player) { return;
+    if (game.winner && game.winner !== player) { return; }
 
     game[player].score = (operator === "increment") ? ++game[player].score  : --game[player].score;
 
@@ -217,6 +222,14 @@ class App extends Component {
     this.setState({game: game});
   };
 
+  _trigger10x() {
+    var that = this;
+    setTimeout(function () {
+      that.setState({tenx: false});
+    }, 3000);
+    this.setState({tenx: true});
+  }
+
   componentWillMount() {
     document.addEventListener("keydown", this._handleButtons.bind(this));
   };
@@ -251,22 +264,39 @@ class App extends Component {
   };
 
   render() {
-    return (!this.state.game || !(Object.keys(this.state.game).length >= 1)) ?
-            <div className="AppLoading">
-              <Header
-                auth={this.state.auth}
-                handleAuthenticate={this._handleAuthenticate}
-              />
-              <LoadingFullScreen />
-            </div> :
-            <div className="App">
-              <Header
-                auth={this.state.auth}
-                handleAuthenticate={this._handleAuthenticate}
-              />
-              <Scoreboard game={this.state.game} />
-              <Footer games={this.state.games || "loading"}/>
-            </div>;
+    var appEl;
+
+    if (!this.state.game || !(Object.keys(this.state.game).length >= 1)) {
+      appEl = <div className="AppLoading">
+                <Header
+                  auth={this.state.auth}
+                  handleAuthenticate={this._handleAuthenticate}
+                />
+                <LoadingFullScreen />
+              </div>;
+    } else {
+      appEl = (!this.state.tenx) ?
+              <div className="App">
+                <Header
+                  auth={this.state.auth}
+                  handleAuthenticate={this._handleAuthenticate}
+                />
+                <Scoreboard game={this.state.game} />
+                <Footer games={this.state.games || "loading"}/>
+              </div> :
+              <div className="App">
+                <Header
+                  auth={this.state.auth}
+                  handleAuthenticate={this._handleAuthenticate}
+                />
+                <TenX />
+                <Footer games={this.state.games || "loading"}/>
+              </div>
+              ;
+    }
+
+    return appEl
+
   };
 }
 
